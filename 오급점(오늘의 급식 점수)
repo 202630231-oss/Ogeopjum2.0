@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오급점 - 오늘의 급식 점수</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700;800;900&family=Gmarket+Sans:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --primary-hover: #FF5252;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --bg-gradient: linear-gradient(135deg, #FFF5F5 0%, #E8F7F5 100%);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #2D3748;
+            --text-sub: #718096;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Container Layout */
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            min-height: 650px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Background Animated Circles */
+        .circle-bg {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+            opacity: 0.6;
+        }
+        .circle-1 {
+            width: 250px;
+            height: 250px;
+            background: #FFB8B8;
+            top: -50px;
+            left: -50px;
+        }
+        .circle-2 {
+            width: 300px;
+            height: 300px;
+            background: #A8E6CF;
+            bottom: -80px;
+            right: -80px;
+        }
+
+        .screen {
+            position: relative;
+            z-index: 10;
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* SCREEN 1: LANDING */
+        #screen-landing {
+            justify-content: center;
+            text-align: center;
+            min-height: 550px;
+        }
+
+        .main-logo-icon {
+            font-size: 64px;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .title-badge {
+            display: inline-block;
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .main-title {
+            font-family: 'Gmarket Sans', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .main-title span {
+            color: var(--primary);
+        }
+
+        .sub-title {
+            font-size: 18px;
+            color: var(--text-sub);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .btn-enter {
+            background: var(--primary);
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-enter:hover {
+            background: var(--primary-hover);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        /* SCREEN 2: INPUT */
+        #screen-input {
+            width: 100%;
+            justify-content: center;
+            min-height: 550px;
+        }
+
+        .input-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .input-header p {
+            color: var(--text-sub);
+            font-size: 15px;
+        }
+
+        .input-box-wrapper {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .menu-input {
+            width: 100%;
+            padding: 22px 24px;
+            padding-right: 70px;
+            font-size: 18px;
+            border: 2px solid #E2E8F0;
+            border-radius: var(--radius-md);
+            outline: none;
+            background: white;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .menu-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.15);
+        }
+
+        .btn-submit-input {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit-input:hover {
+            background: var(--primary-hover);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .input-hint {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hint-tag {
+            background: #EDF2F7;
+            color: #4A5568;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hint-tag:hover {
+            background: #E2E8F0;
+            color: var(--primary);
+        }
+
+        /* SCREEN 3: LOADING */
+        #screen-loading {
+            min-height: 550px;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .ai-loader {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 24px;
+        }
+
+        .spinner {
+            width: 100%;
+            height: 100%;
+            border: 4px solid #E2E8F0;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .ai-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: var(--primary);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: var(--text-sub);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* SCREEN 4: RESULT */
+        #screen-result {
+            width: 100%;
+        }
+
+        .result-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #EDF2F7;
+        }
+
+        .result-title-group h2 {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .result-title-group p {
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+
+        .btn-refresh {
+            background: #EDF2F7;
+            color: var(--text-main);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-refresh:hover {
+            background: #E2E8F0;
+            color: var(--primary);
+            transform: rotate(180deg);
+        }
+
+        /* Result Layout Grid */
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #EDF2F7;
+        }
+
+        .food-image-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .food-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .food-tag {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .score-title {
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .score-number-box {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .score-number {
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 1;
+            font-family: 'Gmarket Sans', sans-serif;
+        }
+
+        .score-max {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        .score-comment {
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-top: 8px;
+        }
+
+        /* Nutrition List */
+        .nutrition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .nutrition-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .calorie-badge {
+            background: #FFF5F5;
+            color: var(--primary);
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .nutrition-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nutrition-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .bar-bg {
+            flex-grow: 1;
+            height: 8px;
+            background: #EDF2F7;
+            border-radius: 4px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+
+        /* Reviews Section */
+        .reviews-section {
+            width: 100%;
+        }
+
+        .reviews-section h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .review-item {
+            background: #F7FAFC;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .review-text {
+            color: #4A5568;
+        }
+
+        .review-user {
+            font-size: 12px;
+            color: #A0AEC0;
+            font-weight: 600;
+        }
+
+        /* AI Analysis Box */
+        .ai-analysis-box {
+            width: 100%;
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-top: 16px;
+            font-size: 14px;
+            color: #166534;
+            line-height: 1.5;
+        }
+
+        .ai-analysis-box strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #15803D;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Background Elements -->
+        <div class="circle-bg circle-1"></div>
+        <div class="circle-bg circle-2"></div>
+
+        <!-- 1. LANDING SCREEN -->
+        <div id="screen-landing" class="screen active">
+            <div class="main-logo-icon">
+                <i class="fa-solid fa-utensils"></i>
+            </div>
+            <span class="title-badge">AI 기반 급식 평가 서비스</span>
+            <h1 class="main-title">오급점<span>.</span></h1>
+            <p class="sub-title">(오늘의 급식 점수)</p>
+            <button class="btn-enter" onclick="goToScreen('input')">
+                시작하기 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- 2. INPUT SCREEN -->
+        <div id="screen-input" class="screen">
+            <div class="input-header">
+                <h2>오늘 나오는 급식은 무엇인가요?</h2>
+                <p>메뉴를 입력해주시면 AI가 모든 인터넷을 검색하여 분석해드립니다.</p>
+            </div>
+            <div class="input-box-wrapper">
+                <input type="text" id="menuInput" class="menu-input" placeholder="예: 돈까스, 김치찌개, 떡볶이, 체리" onkeypress="handleKeyPress(event)">
+                <button class="btn-submit-input" onclick="analyzeMenu()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="input-hint">
+                <span class="hint-tag" onclick="quickInput('제육볶음, 된장찌개, 계란말이')">💡 제육볶음 + 계란말이</span>
+                <span class="hint-tag" onclick="quickInput('치즈돈까스, 우동, 샐러드')">💡 치즈돈까스 + 우동</span>
+                <span class="hint-tag" onclick="quickInput('마라탕, 꿔바로우, 계란볶음밥')">💡 마라탕 + 꿔바로우</span>
+            </div>
+        </div>
+
+        <!-- 3. LOADING SCREEN -->
+        <div id="screen-loading" class="screen">
+            <div class="ai-loader">
+                <div class="spinner"></div>
+                <i class="fa-solid fa-brain ai-icon"></i>
+            </div>
+            <div class="loading-text">AI가 웹 전체 사이트를 탐색 중입니다...</div>
+            <div class="loading-subtext" id="loadingProgress">영양소 데이터베이스 및 실시간 리뷰 수집 중</div>
+        </div>
+
+        <!-- 4. RESULT SCREEN -->
+        <div id="screen-result" class="screen">
+            <div class="result-header">
+                <div class="result-title-group">
+                    <h2 id="resultMenuTitle">메뉴 분석 결과</h2>
+                    <p>AI가 객관적인 빅데이터를 기반으로 산출한 결과입니다.</p>
+                </div>
+                <button class="btn-refresh" onclick="resetApp()" title="처음으로 돌아가기">
+                    <i class="fa-solid fa-rotate-right"></i> 다시하기
+                </button>
+            </div>
+
+            <div class="result-grid">
+                <!-- Food Image & Info Card -->
+                <div class="card">
+                    <div class="food-image-container">
+                        <img id="foodImage" src="" alt="음식 사진">
+                        <span class="food-tag"><i class="fa-solid fa-camera"></i> 대표 이미지</span>
+                    </div>
+                    
+                    <div class="nutrition-header">
+                        <h3><i class="fa-solid fa-chart-pie" style="color:var(--secondary)"></i> 핵심 영양 정보</h3>
+                        <span class="calorie-badge" id="calorieText">0 kcal</span>
+                    </div>
+                    <div class="nutrition-list" id="nutritionList">
+                        <!-- Dynamic Injection -->
+                    </div>
+                </div>
+
+                <!-- AI Score & Reviews Card -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- Score Box -->
+                    <div class="card score-card">
+                        <div class="score-title">AI 판단 오늘의 급식 점수</div>
+                        <div class="score-number-box">
+                            <span class="score-number" id="scoreNumber">0.0</span>
+                            <span class="score-max">/ 10</span>
+                        </div>
+                        <div class="score-comment" id="scoreComment">완벽에 가까운 영양 균형!</div>
+                    </div>
+
+                    <!-- Reviews Box -->
+                    <div class="card reviews-section">
+                        <h3><i class="fa-solid fa-comments" style="color:#F6AD55"></i> 사람들 평가 & 리뷰</h3>
+                        <div class="reviews-list" id="reviewList">
+                            <!-- Dynamic Injection -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Comprehensive Evaluation -->
+            <div class="ai-analysis-box">
+                <strong><i class="fa-solid fa-robot"></i> AI 총평</strong>
+                <span id="aiSummaryText">분석 중...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Screen Navigation
+        function goToScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            setTimeout(() => {
+                document.getElementById('screen-' + screenId).classList.add('active');
+            }, 50);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                analyzeMenu();
+            }
+        }
+
+        function quickInput(text) {
+            document.getElementById('menuInput').value = text;
+            analyzeMenu();
+        }
+
+        // Mock Database & AI Intelligence Simulation
+        const foodDatabase = {
+            '돈까스': {
+                img: 'https://images.unsplash.com/photo-1591814468924-caf88d1232e1?auto=format&fit=crop&w=600&q=80',
+                cals: 680,
+                score: 8.8,
+                comment: '남녀노소 누구나 좋아하는 최고 인기 급식!',
+                carbs: 45, protein: 30, fat: 28,
+                reviews: [
+                    { user: '학생 A', text: '바삭바삭하고 소스 조합이 정말 최고예요!' },
+                    { user: '영양사 B', text: '단백질 함량이 높으나 단백질 및 지방 비율에 주의가 필요해요.' },
+                    { user: '리뷰어 C', text: '급식으로 나오면 항상 잔반 없이 싹 비우는 메뉴 1위.' }
+                ],
+                summary: '인기 지수가 매우 높은 메뉴로 학생 선호도가 탁월합니다. 바삭한 식감과 단백질이 풍부하지만 칼로리가 다소 높을 수 있으므로 샐러드와의 조합이 권장됩니다.'
+            },
+            '제육': {
+                img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+                cals: 550,
+                score: 9.2,
+                comment: '매콤달콤한 한국인의 밥도둑 급식!',
+                carbs: 25, protein: 35, fat: 22,
+                reviews: [
+                    { user: '급식매니아', text: '제육 볶음 나오는 날은 밥 두 공기 기본입니다.' },
+                    { user: '영양사 C', text: '비타민 B1이 풍부한 돼지고기와 채소의 균형이 양호합니다.' },
+                    { user: '학생 D', text: '양념이 잘 배어있어 실패 없는 시그니처 메뉴입니다.' }
+                ],
+                summary: '매콤달콤한 포뮬러로 식욕을 증진시키며 필수 아미노산 함량이 높습니다. 쌈채소나 나물류와 함께 섭취 시 완벽한 탄단지 균형을 이룹니다.'
+            },
+            '마라탕': {
+                img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80',
+                cals: 720,
+                score: 8.5,
+                comment: '요즘 학생들의 압도적 1위 최애 메뉴!',
+                carbs: 60, protein: 25, fat: 32,
+                reviews: [
+                    { user: '트렌드세터', text: '급식에 마라탕이 나온다니 학교 다닐 맛 나네요!' },
+                    { user: '식품연구원', text: '향신료의 알싸함이 스트레스 해소에 도움을 줍니다.' },
+                    { user: '학생 F', text: '국물까지 다 마시게 되는 자극적이고 당기는 맛.' }
+                ],
+                summary: '젊은 층의 호응도가 폭발적인 메뉴입니다. 나트륨과 지방 함량이 다소 높아 자주는 어렵지만 기분 전환용 급식으로 최상의 만족도를 선사합니다.'
+            },
+            'default': {
+                img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+                cals: 580,
+                score: 8.9,
+                comment: '알찬 구성과 건강한 영양 밸런스!',
+                carbs: 50, protein: 28, fat: 18,
+                reviews: [
+                    { user: '미식가', text: '전반적인 간이 적당하고 부담 없이 즐기기 좋습니다.' },
+                    { user: '영양사 Kim', text: '탄수화물, 단백질, 지방 비율이 안정적으로 설계된 식단입니다.' },
+                    { user: '학생 E', text: '호불호 없이 호평을 받는 무난하고 맛있는 구성!' }
+                ],
+                summary: '다양한 식재료가 어우러져 건강과 맛을 모두 잡은 메뉴입니다. Web 빅데이터 분석 결과, 유저 종합 긍정 평가율이 89%에 달합니다.'
+            }
+        };
+
+        function analyzeMenu() {
+            const inputVal = document.getElementById('menuInput').value.trim();
+            if (!inputVal) {
+                alert('급식 메뉴를 입력해주세요!');
+                return;
+            }
+
+            goToScreen('loading');
+
+            // Loading message updates
+            const subtext = document.getElementById('loadingProgress');
+            setTimeout(() => { subtext.innerText = "웹 사이트 & 블로그 포스팅 1,200건 탐색 중..."; }, 700);
+            setTimeout(() => { subtext.innerText = "영양 성분 분석표 및 칼로리 계산 완료..."; }, 1400);
+            setTimeout(() => { subtext.innerText = "AI 신뢰도 점수 및 종합 리뷰 생성 중..."; }, 2100);
+
+            setTimeout(() => {
+                renderResult(inputVal);
+                goToScreen('result');
+            }, 2600);
+        }
+
+        function renderResult(menuName) {
+            document.getElementById('resultMenuTitle').innerText = `"${menuName}" 분석 결과`;
+
+            // Select data pattern
+            let data = foodDatabase['default'];
+            if (menuName.includes('돈까스') || menuName.includes('돈가스')) data = foodDatabase['돈까스'];
+            else if (menuName.includes('제육') || menuName.includes('고기')) data = foodDatabase['제육'];
+            else if (menuName.includes('마라') || menuName.includes('면')) data = foodDatabase['마라탕'];
+
+            // Fill UI
+            document.getElementById('foodImage').src = data.img;
+            document.getElementById('calorieText').innerText = `${data.cals} kcal`;
+            document.getElementById('scoreNumber').innerText = data.score.toFixed(1);
+            document.getElementById('scoreComment').innerText = data.comment;
+            document.getElementById('aiSummaryText').innerText = data.summary;
+
+            // Render Nutrition Bars
+            const nutiContainer = document.getElementById('nutritionList');
+            nutiContainer.innerHTML = `
+                <div class="nutrition-item">
+                    <span style="width:50px;">탄수화물</span>
+                    <div class="bar-bg"><div class="bar-fill" style="width: ${data.carbs * 1.5}%; background:#4ECDC4;"></div></div>
+                    <span style="font-weight:600;">${data.carbs}g</span>
+                </div>
+                <div class="nutrition-item">
+                    <span style="width:50px;">단백질</span>
+                    <div class="bar-bg"><div class="bar-fill" style="width: ${data.protein * 2}%; background:#FF6B6B;"></div></div>
+                    <span style="font-weight:600;">${data.protein}g</span>
+                </div>
+                <div class="nutrition-item">
+                    <span style="width:50px;">지방</span>
+                    <div class="bar-bg"><div class="bar-fill" style="width: ${data.fat * 2}%; background:#FFE66D;"></div></div>
+                    <span style="font-weight:600;">${data.fat}g</span>
+                </div>
+            `;
+
+            // Render Reviews
+            const reviewContainer = document.getElementById('reviewList');
+            reviewContainer.innerHTML = data.reviews.map(r => `
+                <div class="review-item">
+                    <span class="review-text">"${r.text}"</span>
+                    <span class="review-user">- ${r.user}</span>
+                </div>
+            `).join('');
+        }
+
+        function resetApp() {
+            document.getElementById('menuInput').value = '';
+            goToScreen('landing');
+        }
+    </script>
+</body>
+</html>
